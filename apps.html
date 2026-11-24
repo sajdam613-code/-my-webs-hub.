@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Webs Hub</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="theme-color" content="#174b91">
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg: gainsboro;
+  --panel: aliceblue;
+  --card: lightsteelblue;
+  --heading: midnightblue;
+  --text: darkslategray;
+  --hover: silver;
+}
+body.dark {
+  --bg: #171d2b;
+  --panel: #222e42;
+  --card: #344761;
+  --heading: #c5dcff;
+  --text: #edf3ff;
+  --hover: #465c78;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Tahoma, sans-serif;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 245px;
+  flex-shrink: 0;
+  padding: 20px 15px;
+  background: var(--panel);
+  border-inline-end: 1px solid var(--hover);
+}
+.logo {
+  text-align: center;
+  color: var(--heading);
+  font-size: 23px;
+  font-weight: bold;
+  margin: 8px 0 25px;
+}
+.side-heading {
+  color: var(--heading);
+  font-weight: bold;
+  margin: 20px 5px 9px;
+}
+.side-list { display: flex; flex-direction: column; gap: 6px; }
+.side-btn, .side-action {
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  text-align: start;
+  color: var(--text);
+  background: transparent;
+}
+.side-btn:hover, .side-btn.active, .side-action {
+  background: var(--card);
+  color: var(--heading);
+}
+.side-action:hover, .side-btn:hover { background: var(--hover); }
+.side-search {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--hover);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+.clock {
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 22px;
+  color: var(--heading);
+}
+.main { flex: 1; min-width: 0; padding: 25px; }
+header { text-align: center; margin-bottom: 25px; }
+header h1 { color: var(--heading); margin: 0 0 8px; }
+.section {
+  background: var(--panel);
+  border: 1px solid var(--hover);
+  border-radius: 12px;
+  padding: 17px;
+  margin-bottom: 20px;
+}
+.section h2 { color: var(--heading); margin: 0 0 15px; font-size: 20px; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 13px;
+}
+.site-card {
+  background: var(--card);
+  color: var(--heading);
+  padding: 15px 10px;
+  border-radius: 10px;
+  text-align: center;
+  transition: .2s;
+  min-width: 0;
+}
+.site-card:hover { background: var(--hover); transform: translateY(-2px); }
+.site-card a {
+  color: var(--heading);
+  text-decoration: none;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.site-icon {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+  background: white;
+  border-radius: 6px;
+  padding: 2px;
+}
+.card-tools {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.card-tools button, .card-tools select {
+  border: 0;
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 12px;
+  max-width: 100%;
+}
+.empty { padding: 12px; opacity: .7; }
+.footer { text-align: center; padding: 15px; font-size: 12px; opacity: .65; }
+@media(max-width:720px) {
+  .app { display: block; }
+  .sidebar {
+    width: 100%;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--hover);
+  }
+  .side-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .main { padding: 15px; }
+  .cards { grid-template-columns: repeat(auto-fill,minmax(125px,1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">🌐 My Webs Hub</div>
+
+  <div class="side-heading" id="catHeading">الأقسام</div>
+  <div class="side-list" id="categories"></div>
+  <button class="side-action" onclick="addCategory()" id="addCategoryBtn">＋ إضافة قسم</button>
+
+  <div class="side-heading" id="toolsHeading">الأدوات</div>
+  <input class="side-search" id="search" placeholder="🔎 ابحث عن موقع..." oninput="render()">
+
+  <div class="side-list">
+    <button class="side-action" onclick="addSite()" id="addSiteBtn">＋ إضافة موقع</button>
+    <button class="side-action" onclick="showAll()" id="allBtn">🏠 كل المواقع</button>
+    <button class="side-action" onclick="showFavorites()" id="favBtn">⭐ المفضلة</button>
+    <button class="side-action" onclick="toggleTheme()" id="themeBtn">🌙 الوضع الداكن</button>
+    <button class="side-action" onclick="toggleLanguage()" id="langBtn">🌐 English</button>
+    <button class="side-action" onclick="exportBackup()" id="exportBtn">⬇️ نسخة احتياطية</button>
+    <button class="side-action" onclick="document.getElementById('backupFile').click()" id="importBtn">⬆️ استعادة نسخة</button>
+    <button class="side-action" onclick="openStandalone()" id="windowBtn">↗️ نافذة مستقلة</button>
+    <button class="side-action" onclick="installApp()" id="installBtn">📲 تثبيت كتطبيق</button>
+    <input type="file" id="backupFile" accept=".json" hidden onchange="importBackup(event)">
+  </div>
+  <div class="clock"><div id="date"></div><div id="time"></div></div>
+</aside>
+
+<main class="main">
+  <header>
+    <h1 id="mainTitle">My Webs Hub 💙</h1>
+    <p id="mainSubtitle">كل مواقعك المفضلة في مكان واحد</p>
+  </header>
+  <div id="siteSections"></div>
+  <div class="footer">My Webs Hub</div>
+</main>
+</div>
+
+<script>
+const defaultCategories = [
+  {id:"anime",name:"Anime & Manga"},
+  {id:"study",name:"Study & Education"},
+  {id:"other",name:"My Other Websites"}
+];
+
+const defaultSites = [
+  {id:1,name:"Anime Arab",url:"https://anime3rb.com/",category:"anime",favorite:false},
+  {id:2,name:"MangaDar",url:"https://mangadar.com/",category:"anime",favorite:false},
+  {id:3,name:"Courssat Plus",url:"https://courssatplus.com/",category:"study",favorite:false},
+  {id:4,name:"Karim Tammam",url:"https://mrkarimtammam.com/#/profile",category:"study",favorite:false},
+  {id:5,name:"Mohab Salama",url:"https://mohabsalama.com/",category:"study",favorite:false},
+  {id:6,name:"Bassthalk",url:"https://bassthalk.com/userprofile/home",category:"study",favorite:false}
+];
+
+function getSaved(key,fallback) {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(fallback));
+  } catch {
+    return JSON.parse(JSON.stringify(fallback));
+  }
+}
+
+let categories = getSaved("hub_categories",defaultCategories);
+let sites = getSaved("hub_sites",defaultSites);
+let view = "all";
+let selectedCategory = null;
+let dark = localStorage.getItem("hub_dark") === "true";
+let lang = localStorage.getItem("hub_lang") || "ar";
+
+const words = {
+  ar: {
+    categories:"الأقسام",tools:"الأدوات",addCategory:"＋ إضافة قسم",
+    addSite:"＋ إضافة موقع",all:"🏠 كل المواقع",favorites:"⭐ المفضلة",
+    themeDark:"🌙 الوضع الداكن",themeLight:"☀️ الوضع الفاتح",
+    language:"🌐 English",export:"⬇️ نسخة احتياطية",
+    import:"⬆️ استعادة نسخة",window:"↗️ نافذة مستقلة",
+    install:"📲 تثبيت كتطبيق",search:"🔎 ابحث عن موقع...",
+    open:"فتح",edit:"تعديل",delete:"حذف",empty:"لا توجد مواقع هنا حتى الآن.",
+    addName:"اكتبي اسم الموقع:",addUrl:"اكتبي رابط الموقع:",
+    newCat:"اكتبي اسم القسم الجديد:",confirmDelete:"هل تريدين حذف هذا الموقع؟",
+    imported:"تم استعادة النسخة الاحتياطية.",invalid:"ملف النسخة الاحتياطية غير صالح.",
+    installInfo:"التثبيت كتطبيق يحتاج استضافة الموقع على HTTPS وإعداد ملفات PWA.",
+    welcome:"كل مواقعك المفضلة في مكان واحد",chooseCat:"اختاري القسم:"
+  },
+  en: {
+    categories:"Categories",tools:"Tools",addCategory:"＋ Add category",
+    addSite:"＋ Add website",all:"🏠 All websites",favorites:"⭐ Favorites",
+    themeDark:"🌙 Dark mode",themeLight:"☀️ Light mode",
+    language:"🌐 العربية",export:"⬇️ Backup",
+    import:"⬆️ Restore backup",window:"↗️ Standalone window",
+    install:"📲 Install as app",search:"🔎 Search websites...",
+    open:"Open",edit:"Edit",delete:"Delete",empty:"No websites here yet.",
+    addName:"Website name:",addUrl:"Website URL:",
+    newCat:"New category name:",confirmDelete:"Delete this website?",
+    imported:"Backup restored.",invalid:"Invalid backup file.",
+    installInfo:"App installation requires HTTPS hosting and PWA files.",
+    welcome:"All your favorite websites in one place",chooseCat:"Choose category:"
+  }
+};
+
+function t(key) { return words[lang][key]; }
+
+function save() {
+  localStorage.setItem("hub_categories",JSON.stringify(categories));
+  localStorage.setItem("hub_sites",JSON.stringify(sites));
+}
+
+function setLanguage() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+  const ids = {
+    catHeading:"categories",toolsHeading:"tools",
+    addCategoryBtn:"addCategory",addSiteBtn:"addSite",
+    allBtn:"all",favBtn:"favorites",exportBtn:"export",
+    importBtn:"import",windowBtn:"window",installBtn:"install",
+    mainSubtitle:"welcome"
+  };
+
+  Object.entries(ids).forEach(([id,key]) => {
+    document.getElementById(id).textContent = t(key);
+  });
+
+  document.getElementById("themeBtn").textContent =
+    dark ? t("themeLight") : t("themeDark");
+
+  document.getElementById("langBtn").textContent = t("language");
+  document.getElementById("search").placeholder = t("search");
+  render();
+}
+
+function toggleLanguage() {
+  lang = lang === "ar" ? "en" : "ar";
+  localStorage.setItem("hub_lang",lang);
+  setLanguage();
+}
+
+function toggleTheme() {
+  dark = !dark;
+  localStorage.setItem("hub_dark",dark);
+  document.body.classList.toggle("dark",dark);
+  setLanguage();
+}
+
+function renderCategories() {
+  const box = document.getElementById("categories");
+  box.innerHTML = "";
+
+  categories.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "side-btn" +
+      (view === "category" && selectedCategory === cat.id ? " active" : "");
+    btn.textContent = cat.name;
+    btn.onclick = () => {
+      view = "category";
+      selectedCategory = cat.id;
+      render();
+    };
+    box.appendChild(btn);
+  });
+}
+
+function showAll() {
+  view = "all";
+  selectedCategory = null;
+  render();
+}
+
+function showFavorites() {
+  view = "favorites";
+  selectedCategory = null;
+  render();
+}
+
+function render() {
+  renderCategories();
+  const area = document.getElementById("siteSections");
+  area.innerHTML = "";
+
+  const query = document.getElementById("search").value.trim().toLowerCase();
+
+  let groups = [];
+
+  if (view === "category") {
+    const cat = categories.find(c => c.id === selectedCategory);
+    groups = [{name:cat ? cat.name : "", sites:sites.filter(s => s.category === selectedCategory)}];
+  } else if (view === "favorites") {
+    groups = [{name:t("favorites"),sites:sites.filter(s => s.favorite)}];
+  } else {
+    groups = categories.map(cat => ({
+      name:cat.name,
+      sites:sites.filter(s => s.category === cat.id)
+    }));
+  }
+
+  groups.forEach(group => {
+    const filtered = group.sites.filter(site =>
+      site.name.toLowerCase().includes(query) ||
+      site.url.toLowerCase().includes(query)
+    );
+
+    if (!filtered.length) {
+      if (query || view !== "all") return;
+      if (group.sites.length === 0) return;
+    }
+
+    const section = document.createElement("section");
+    section.className = "section";
+
+    const heading = document.createElement("h2");
+    heading.textContent = group.name;
+    section.appendChild(heading);
+
+    const cards = document.createElement("div");
+    cards.className = "cards";
+
+    filtered.forEach(site => {
+      const card = document.createElement("div");
+      card.className = "site-card";
+
+      const link = document.createElement("a");
+      link.href = site.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      const icon = document.createElement("img");
+      icon.className = "site-icon";
+      icon.src = "https://www.google.com/s2/favicons?domain=" +
+        encodeURIComponent(new URL(site.url).hostname) + "&sz=64";
+      icon.alt = "";
+      icon.onerror = () => { icon.style.display = "none"; };
+
+      const name = document.createElement("span");
+      name.textContent = site.name;
+
+      link.append(icon,name);
+      card.appendChild(link);
+
+      const tools = document.createElement("div");
+      tools.className = "card-tools";
+
+      const fav = document.createElement("button");
+      fav.textContent = site.favorite ? "⭐" : "☆";
+      fav.title = "Favorite";
+      fav.onclick = () => {
+        site.favorite = !site.favorite;
+        save();
+        render();
+      };
+
+      const edit = document.createElement("button");
+      edit.textContent = "✏️";
+      edit.title = t("edit");
+      edit.onclick = () => editSite(site.id);
+
+      const del = document.createElement("button");
+      del.textContent = "🗑️";
+      del.title = t("delete");
+      del.onclick = () => deleteSite(site.id);
+
+      const move = document.createElement("select");
+      move.title = "Move category";
+
+      categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat.id;
+        option.textContent = cat.name;
+        option.selected = cat.id === site.category;
+        move.appendChild(option);
+      });
+
+      move.onchange = () => {
+        site.category = move.value;
+        save();
+        render();
+      };
+
+      tools.append(fav,edit,del,move);
+      card.appendChild(tools);
+      cards.appendChild(card);
+    });
+
+    if (filtered.length) {
+      section.appendChild(cards);
+      area.appendChild(section);
+    }
+  });
+
+  if (!area.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty";
+    empty.textContent = t("empty");
+    area.appendChild(empty);
+  }
+}
+
+function addCategory() {
+  const name = prompt(t("newCat"));
+  if (!name || !name.trim()) return;
+
+  categories.push({
+    id:"cat_" + Date.now(),
+    name:name.trim()
+  });
+
+  save();
+  render();
+}
+
+function addSite() {
+  const name = prompt(t("addName"));
+  if (!name || !name.trim()) return;
+
+  let url = prompt(t("addUrl"));
+  if (!url || !url.trim()) return;
+
+  url = url.trim();
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+  try {
+    new URL(url);
+  } catch {
+    alert("Invalid URL");
+    return;
+  }
+
+  const choices = categories.map((c,i) => (i+1) + ". " + c.name).join("\n");
+  const choice = prompt(t("chooseCat") + "\n" + choices,"1");
+  const index = Number(choice) - 1;
+  const category = categories[index];
+
+  if (!category) return;
+
+  sites.push({
+    id:Date.now(),
+    name:name.trim(),
+    url,
+    category:category.id,
+    favorite:false
+  });
+
+  save();
+  render();
+}
+
+function editSite(id) {
+  const site = sites.find(s => s.id === id);
+  if (!site) return;
+
+  const name = prompt(t("addName"),site.name);
+  if (name === null || !name.trim()) return;
+
+  let url = prompt(t("addUrl"),site.url);
+  if (url === null || !url.trim()) return;
+
+  url = url.trim();
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+  try {
+    new URL(url);
+  } catch {
+    alert("Invalid URL");
+    return;
+  }
+
+  site.name = name.trim();
+  site.url = url;
+  save();
+  render();
+}
+
+function deleteSite(id) {
+  if (!confirm(t("confirmDelete"))) return;
+  sites = sites.filter(s => s.id !== id);
+  save();
+  render();
+}
+
+function exportBackup() {
+  const data = JSON.stringify({categories,sites},null,2);
+  const blob = new Blob([data],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "my-apps-hub-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data.categories) || !Array.isArray(data.sites)) {
+        throw new Error("Invalid backup");
+      }
+
+      categories = data.categories;
+      sites = data.sites;
+      save();
+      render();
+      alert(t("imported"));
+    } catch {
+      alert(t("invalid"));
+    }
+    event.target.value = "";
+  };
+
+  reader.readAsText(file);
+}
+
+function openStandalone() {
+  const url = location.href;
+  const win = window.open(url,"MyAppsHub","width=1100,height=750");
+  if (!win) alert("Allow pop-ups to open a separate window.");
+}
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  alert(lang === "ar" ? "تم تثبيت My Webs Hub بنجاح 💙" : "My Webs Hub was installed successfully 💙");
+});
+
+async function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    return;
+  }
+  const message = lang === "ar"
+    ? "لو التطبيق مرفوع على HTTPS، افتحي قائمة المتصفح ⋮ واختاري «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق»."
+    : "When the app is hosted over HTTPS, open the browser menu ⋮ and choose “Add to Home screen” or “Install app”.";
+  alert(message);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("date").textContent =
+    now.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US");
+  document.getElementById("time").textContent =
+    now.toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US");
+}
+
+document.body.classList.toggle("dark",dark);
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+setLanguage();
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>
